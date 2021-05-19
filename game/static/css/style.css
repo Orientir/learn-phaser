@@ -1,0 +1,10 @@
+body {
+    background:#b7a68e url('../images/space2.png');
+}
+
+canvas {
+    margin-right: auto;
+    margin-left: auto;
+    display: block;
+    border: 5px solid white;
+}
