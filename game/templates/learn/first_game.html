@@ -22,22 +22,40 @@
             }
         };
 
+<!--objects -->
         var player;
         var stars;
         var platforms;
         var bombs;
         var lasers;
+
         var cursors;
+<!--different count for game-->
         var score = 0;
         var life = 3;
+        var list_life = [];
         var level = 1;
+
+<!--text information for game       -->
         var levelText;
-        var timeLaser;
         var scoreText;
         var timeLaserText;
+
+<!--timer         -->
+        var timeLaser;
         var hsv;
         var graphicLaser;
+        var timerBeforeDead;
+
+<!--game        -->
         var game = new Phaser.Game(config);
+        var gameOverImage;
+
+<!--Sound effect for game-->
+        var laserDelaySound;
+        var moneyFallSound;
+        var gameOverSound;
+        var hitBombSound;
 
         function preload ()
         {
@@ -47,6 +65,13 @@
             this.load.image('bomb', 'static/images/bomb.png');
             this.load.image('laser', 'static/images/laserRed14.png');
             this.load.spritesheet('dude', 'static/images/dude.png', { frameWidth: 32, frameHeight: 48 });
+            this.load.image('life', 'static/images/life.png');
+            this.load.image('game-over', 'static/images/game-over.png');
+
+            this.load.audio('laser-delay', [ 'static/sounds/laser-delay.ogg', 'static/sounds/laser-delay.mp3' ]);
+            this.load.audio('money-fall', [ 'static/sounds/money-fall.ogg', 'static/sounds/money-fall.mp3' ]);
+            this.load.audio('game-over', [ 'static/sounds/failing.ogg', 'static/sounds/failing.mp3' ]);
+            this.load.audio('hit-bomb', [ 'static/sounds/hit-bomb.ogg', 'static/sounds/hit-bomb.mp3' ]);
         }
 
         function create ()
@@ -69,6 +94,10 @@
             bombs = this.physics.add.group();
             lasers = this.physics.add.group();
 
+            for (var i = 0; i < life; i++){
+                list_life[i] = this.add.image(80 - i*30, 30, 'life')
+            }
+
             this.anims.create({
                 key: 'left',
                 frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
@@ -89,6 +118,11 @@
                 repeat: -1
             });
 
+            laserDelaySound = this.sound.add('laser-delay');
+            moneyFallSound = this.sound.add('money-fall');
+            gameOverSound = this.sound.add('game-over');
+            hitBombSound = this.sound.add('hit-bomb');
+
             cursors = this.input.keyboard.createCursorKeys();
 
             stars = this.physics.add.group({
@@ -98,17 +132,17 @@
             });
 
             stars.children.iterate(function (child) {
-
+                moneyFallSound.play();
                 child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
 
             });
 
-            scoreText = this.add.text(16, 16, 'Score : 0', { fontSize: '32px', fill: '#000' });
-            levelText = this.add.text(16, 40, 'Level : 1', { fontSize: '32px', fill: '#000' });
-            timeLaserText = this.add.text(16, 64, 'Charge: ', { fontSize: '32px', fill: '#000' });
+            scoreText = this.add.text(600, 16, 'Score : 0', { fontSize: '24px', fill: '#000' });
+            levelText = this.add.text(600, 40, 'Level : 1', { fontSize: '24px', fill: '#000' });
+            timeLaserText = this.add.text(10, 50, 'Charge: ', { fontSize: '24px', fill: '#000' });
             timeLaser = this.time.addEvent({ delay: 1000 });
-            hsv = Phaser.Display.Color.HSVColorWheel();
-            graphicLaser = this.add.graphics({ x: 170, y: 44 });
+            hsv = Phaser.Display.Color.HSVToRGB(0, 97, 80).color;
+            graphicLaser = this.add.graphics({ x: 130, y: 23 });
 
 
             this.physics.add.collider(bombs, platforms);
@@ -124,7 +158,7 @@
         {
             graphicLaser.clear();
             graphicLaser.fillRect(0, 32, 100 * timeLaser.getProgress(), 14);
-            graphicLaser.fillStyle(hsv[2 * 8].color, 1);
+            graphicLaser.fillStyle(hsv, 1);
 
             if (cursors.left.isDown)
             {
@@ -150,7 +184,8 @@
                 {
                     if (timeLaser.getProgress() === 1) {
                         createLasers('right')
-                        timeLaser = this.time.addEvent({ delay: 1000 });
+                        timeLaser = this.time.addEvent({ delay: 4000 });
+                        laserDelay.play();
                     }
 
                 }
@@ -177,6 +212,7 @@
 
             if (stars.countActive(true) === 0)
             {
+                moneyFallSound.play();
                 stars.children.iterate(function (child) {
 
                     child.enableBody(true, child.x, 0, true, true);
@@ -197,13 +233,46 @@
 
         function hitBomb (player, bomb)
         {
-            this.physics.pause();
+            hitBombSound.play()
+            for (var i = 0; i < life; i++){
+               list_life[i].destroy();
+            }
+            life -= 1;
 
-            player.setTint(0xff0000);
+            for (var i = 0; i < life; i++){
+               list_life[i] = this.add.image(10 + i*30, 30, 'life')
+            }
 
-            player.anims.play('turn');
+            if (life === 0){
+                this.physics.pause();
 
-            gameOver = true;
+                gameOverSound.play();
+
+                player.setTint(0xff0000);
+
+                player.anims.play('turn');
+
+                gameOver = true;
+                gameOverImage = this.add.image(400, 300, 'game-over')
+
+            }else{
+                this.physics.pause();
+
+
+                player.setTint(0xff0000);
+
+                player.anims.play('turn');
+
+                timeBeforeDead = this.time.delayedCall(1000, onTimeBeforeDead, [], this);
+
+
+                var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+                var bomb = bombs.create(x, 16, 'bomb');
+                bomb.setBounce(1);
+                bomb.setCollideWorldBounds(true);
+                bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
+            }
+
         }
 
         function createLasers(direction)
@@ -230,6 +299,13 @@
         function delLasers (lasers, platforms)
         {
             lasers.disableBody(true, true);
+        }
+
+        function onTimeBeforeDead ()
+        {
+            this.physics.resume()
+            player.clearTint()
+            bomb.disableBody(true, true);
         }
 
     </script>

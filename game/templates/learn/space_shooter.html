@@ -24,11 +24,20 @@
 
         var bg;
         var stars;
+        var bang;
         var ship;
         var bullets;
         var lastFired = 0;
         var cursors;
         var fire;
+
+        var asteroid1;
+        var asteroid2;
+        var asteroid3;
+        var asteroid4;
+        var mine;
+
+        var list_asteroid = []
 
         var game = new Phaser.Game(config);
 
@@ -37,6 +46,7 @@
             this.load.image('background', 'static/images/nebula.jpg');
             this.load.image('stars', 'static/images/stars.png');
             this.load.atlas('space', 'static/images/space.png', 'static/json/space.json');
+            this.load.atlas('boom', 'static/images/bang-sprite.png', 'static/json/bang-sprite.json');
         }
 
         function create ()
@@ -117,11 +127,16 @@
             this.textures.addSpriteSheetFromAtlas('asteroid3-sheet', { atlas: 'space', frame: 'asteroid3', frameWidth: 96 });
             this.textures.addSpriteSheetFromAtlas('asteroid4-sheet', { atlas: 'space', frame: 'asteroid4', frameWidth: 64 });
 
+            this.textures.addSpriteSheetFromAtlas('bang-sheet', { atlas: 'boom', frame: 'bang-sprite', frameWidth: 112 });
+
+
             this.anims.create({ key: 'mine-anim', frames: this.anims.generateFrameNumbers('mine-sheet', { start: 0, end: 15 }), frameRate: 20, repeat: -1 });
             this.anims.create({ key: 'asteroid1-anim', frames: this.anims.generateFrameNumbers('asteroid1-sheet', { start: 0, end: 24 }), frameRate: 20, repeat: -1 });
             this.anims.create({ key: 'asteroid2-anim', frames: this.anims.generateFrameNumbers('asteroid2-sheet', { start: 0, end: 24 }), frameRate: 20, repeat: -1 });
             this.anims.create({ key: 'asteroid3-anim', frames: this.anims.generateFrameNumbers('asteroid3-sheet', { start: 0, end: 24 }), frameRate: 20, repeat: -1 });
             this.anims.create({ key: 'asteroid4-anim', frames: this.anims.generateFrameNumbers('asteroid4-sheet', { start: 0, end: 23 }), frameRate: 20, repeat: -1 });
+
+            this.anims.create({ key: 'bang-anim', frames: this.anims.generateFrameNumbers('bang-sheet', { start: 0, end: 42 }), frameRate: 20, repeat: 0 });
 
             //  World size is 8000 x 6000
 
@@ -191,8 +206,17 @@
             cursors = this.input.keyboard.createCursorKeys();
             fire = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-            asteroid = this.add.sprite(4300, 3000).play('asteroid1-anim');
-            this.physics.add.overlap(asteroid, ship, hitAsteroid, null, this);
+            asteroid1 = this.physics.add.sprite(Phaser.Math.Between(0, 8000), Phaser.Math.Between(0, 6000)).play('asteroid1-anim');
+            asteroid2 = this.physics.add.sprite(Phaser.Math.Between(0, 8000), Phaser.Math.Between(0, 6000)).play('asteroid2-anim');
+            asteroid3 = this.physics.add.sprite(Phaser.Math.Between(0, 8000), Phaser.Math.Between(0, 6000)).play('asteroid3-anim');
+            asteroid4 = this.physics.add.sprite(Phaser.Math.Between(0, 8000), Phaser.Math.Between(0, 6000)).play('asteroid4-anim');
+            mine = this.physics.add.sprite(Phaser.Math.Between(0, 8000), Phaser.Math.Between(0, 6000)).play('mine-anim');
+
+            list_asteroid = [asteroid1, asteroid2, asteroid3, asteroid4, mine]
+
+            for (var i=0; i<5; i++) {
+                this.physics.add.overlap(list_asteroid[i], bullets, hitAsteroid, null, this);
+            }
 
             this.tweens.add({
                 targets: galaxy,
@@ -205,6 +229,16 @@
 
         function update (time, delta)
         {
+
+            for (var i=0; i<5; i++) {
+                if (list_asteroid[i].visible === false){
+                    list_asteroid[i].x = Phaser.Math.Between(0, 8000)
+                    list_asteroid[i].y = Phaser.Math.Between(0, 6000)
+                    list_asteroid[i].setActive(true).setVisible(true);
+                    console.log("CREATE")
+                }
+            }
+
             if (cursors.left.isDown)
             {
                 ship.setAngularVelocity(-150);
@@ -248,8 +282,14 @@
 
         function hitAsteroid (asteroid, ship)
         {
-            this.physics.pause();
-            console.log("Game Over")
+            var x = asteroid.x;
+            var y = asteroid.y;
+            asteroid.setActive(false).setVisible(false);
+            if (bang) {
+                bang.destroy();
+            }
+
+            bang = this.physics.add.sprite(x, y).play('bang-anim');
         }
 
     </script>

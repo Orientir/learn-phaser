@@ -129,6 +129,7 @@ STATICFILES_DIRS = [
     ("css", os.path.join(STATIC_ROOT, "css")),
     ("js", os.path.join(STATIC_ROOT, "js")),
     ("json", os.path.join(STATIC_ROOT, "json")),
+    ("sounds", os.path.join(STATIC_ROOT, "sounds")),
 ]
 
 STATICFILES_FINDERS = [

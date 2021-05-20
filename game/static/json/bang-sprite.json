@@ -1,0 +1,29 @@
+{"frames": [
+	{
+		"filename": "bang-sprite",
+		"rotated": false,
+		"trimmed": true,
+		"sourceSize": {
+			"w": 448,
+			"h": 1210
+		},
+		"spriteSourceSize": {
+			"x": 0,
+			"y": 0,
+			"w": 448,
+			"h": 1210
+		},
+		"frame": {
+			"x": 0,
+			"y": 0,
+			"w": 448,
+			"h": 1210
+		}
+	}
+			],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:4c85417a5dd82b82aa628712ebf5079f:851de0f1cf7f9cdce4eea7d8488d0681:20a1821019a7634c21d06f3b53242a07$"
+	}
+}
