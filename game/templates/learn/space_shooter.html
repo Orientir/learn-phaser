@@ -37,6 +37,8 @@
         var asteroid4;
         var mine;
 
+        var coordtext;
+
         var list_asteroid = []
 
         var game = new Phaser.Game(config);
@@ -214,6 +216,8 @@
 
             list_asteroid = [asteroid1, asteroid2, asteroid3, asteroid4, mine]
 
+            coordText = this.add.text(600, 16, 'x : 0; y: 0', { fontSize: '24px', fill: '#000' });
+
             for (var i=0; i<5; i++) {
                 this.physics.add.overlap(list_asteroid[i], bullets, hitAsteroid, null, this);
             }
@@ -229,7 +233,10 @@
 
         function update (time, delta)
         {
-
+            let x = ship.x;
+            let y = ship.y;
+            coordText.setText('x : ' + x + '; y : ' + y);
+            console.log('x : ' + x + '; y : ' + y)
             for (var i=0; i<5; i++) {
                 if (list_asteroid[i].visible === false){
                     list_asteroid[i].x = Phaser.Math.Between(0, 8000)
@@ -237,6 +244,7 @@
                     list_asteroid[i].setActive(true).setVisible(true);
                     console.log("CREATE")
                 }
+                console.log(list_asteroid[i].x + " - " + list_asteroid[i].y);
             }
 
             if (cursors.left.isDown)
